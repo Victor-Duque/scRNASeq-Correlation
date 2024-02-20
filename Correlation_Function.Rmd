@@ -1,0 +1,85 @@
+---
+title: "Correlation"
+author: "Victor Duque"
+date: "2024-02-20"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+setwd("A:/Bioinformatica/Supraoptic")
+set.seed(4301)
+
+library("reshape2")
+library("Hmisc")
+library(tidyverse)
+library(writexl)
+library(Seurat)
+library(openxlsx)
+library(Matrix)
+library(Biobase)
+
+```
+
+```{r Function}
+Corr_Duq =function(Data, Identy, Subset, Target){
+  RP_Final = data.frame()
+  Start = Sys.time()
+  Idents(Data) = Identy
+  if(is.null(Subset)){Data = Data
+    } else {Data = subset(Data, idents = Subset)
+            }
+  Data <- as.matrix(t(Data@assays$RNA@counts))
+  if(is.null(Subset)){Name = "Total"
+            } else {Name = Subset
+            }
+  print(paste0("Starting Correlation of ", Target, " in cluster: ", Name))
+    for (i in 1:length(colnames(Data))) {
+        if(i == as.integer(length(colnames(Data))*0.01)){print(paste0("1%"))} 
+        if(i == as.integer(length(colnames(Data))*0.25)){print(paste0("25%"))} 
+        if(i == as.integer(length(colnames(Data))*0.50)){print(paste0("50%"))}
+        if(i == as.integer(length(colnames(Data))*0.75)){print(paste0("75%"))}
+        if(i == as.integer(length(colnames(Data))*1)){print(paste0("100%"))}
+        col_index <- which(colnames(Data) == Target)
+        Data_Cor = as.matrix(Data[,c(col_index,i)])
+        rcorr <- rcorr(Data_Cor, type = c("spearman"))
+        R <- data.frame(rcorr$r)
+        colnames(R) <- paste0("R_", colnames(R))
+        R = rownames_to_column(R, "Gene")
+        R <- data.frame(R[,c("Gene", paste0("R_",Target))])
+        P <- data.frame(rcorr$P)
+        colnames(P) <- paste0("P_", colnames(P))
+        P = rownames_to_column(P, "Gene")
+        P <- data.frame(P[,c("Gene", paste0("P_",Target))])
+        RP <- left_join(R, P, by = c("Gene" = "Gene"))
+        RP = RP[-1,]
+        RP_Final = bind_rows(RP_Final, RP)
+    }
+  RP_Final = subset(RP_Final, subset = RP_Final[,3]<0.05)
+  RP_Final = RP_Final %>% arrange(desc(RP_Final[,2]))
+  write_xlsx(RP_Final, paste0(Target,"_",Name,"_","Correlation.xlsx"))
+  Finish = Sys.time()
+  Time =  Finish - Start
+  minutes <- as.integer(Time, units = "mins")
+  print(paste0("Finished !! Running time was ", minutes,
+         " seconds !! File was saved as: ", Target,"_",Name,"_","Correlation.xlsx !!"))
+  return(RP_Final)
+}
+```
+
+```{r}
+Seurat = readRDS("Seurat.rds")
+
+#Data = Seurat Object
+#Identy = Ident of Seurat object with you want to use for some Subset
+#Subset = Cluster of analysis. OBS: If you want All cell, just put: NULL
+#Target = Gene for correlation
+
+Unspliced = Corr_Duq(Data = Seurat, Identy = "seurat_clusters", Subset = NULL, Target = "Avp")
+
+Unspliced = Corr_Duq(Data = Seurat, Identy = "seurat_clusters", Subset = "1", Target = "Avp")
+
+Unspliced = Corr_Duq(Data = Seurat, Identy = "seurat_clusters", Subset = "2", Target = "Avp")
+```
+
