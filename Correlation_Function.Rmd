@@ -23,10 +23,10 @@ library(Biobase)
 ```
 
 ```{r Function}
-Corr_Duq =function(Data, Identy, Subset, Target){
+Corr_Duq =function(Data, Identity, Subset, Target){
   RP_Final = data.frame()
   Start = Sys.time()
-  Idents(Data) = Identy
+  Idents(Data) = Identity
   if(is.null(Subset)){Data = Data
     } else {Data = subset(Data, idents = Subset)
             }
@@ -72,14 +72,14 @@ Corr_Duq =function(Data, Identy, Subset, Target){
 Seurat = readRDS("Seurat.rds")
 
 #Data = Seurat Object
-#Identy = Ident of Seurat object with you want to use for some Subset
+#Identity = Ident of Seurat object with you want to use for some Subset
 #Subset = Cluster of analysis. OBS: If you want All cell, just put: NULL
 #Target = Gene for correlation
 
-Unspliced = Corr_Duq(Data = Seurat, Identy = "seurat_clusters", Subset = NULL, Target = "Avp")
+Unspliced = Corr_Duq(Data = Seurat, Identity = "seurat_clusters", Subset = NULL, Target = "Avp")
 
-Unspliced = Corr_Duq(Data = Seurat, Identy = "seurat_clusters", Subset = "1", Target = "Avp")
+Unspliced = Corr_Duq(Data = Seurat, Identity = "seurat_clusters", Subset = "1", Target = "Avp")
 
-Unspliced = Corr_Duq(Data = Seurat, Identy = "seurat_clusters", Subset = "2", Target = "Avp")
+Unspliced = Corr_Duq(Data = Seurat, Identity = "seurat_clusters", Subset = "2", Target = "Avp")
 ```
 
