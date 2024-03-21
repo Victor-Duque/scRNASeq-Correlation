@@ -30,7 +30,10 @@ Corr_Duq =function(Data, Identity, Subset, Target){
   if(is.null(Subset)){Data = Data
     } else {Data = subset(Data, idents = Subset)
             }
-  Data <- as.matrix(t(Data@assays$RNA@counts))
+  Data <- as.matrix(t(Data@assays$RNA$counts))
+  Data = data.frame(Data)
+  Data = subset(Data, subset = ESR2 > 0)
+  Data <- as.matrix(Data)
   if(is.null(Subset)){Name = "Total"
             } else {Name = Subset
             }
